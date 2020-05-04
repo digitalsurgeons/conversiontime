@@ -293,7 +293,7 @@ export default function Reccos(props) {
         className={classes.reccos}
         style={{ display: mainRecco.length ? 'block' : 'none' }}>
         <Typography className={classes.reccos__main}>
-          ⭐️ Recommended conversion time is{' '}
+          ⭐️ Conversion time is{' '}
           <Typography
             className={classes.reccos__mainHighlight}
             component="span">
