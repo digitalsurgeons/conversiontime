@@ -18,11 +18,19 @@ import CalendarIcon from '@material-ui/icons/CalendarToday'
 import ScheduleIcon from '@material-ui/icons/Schedule'
 import ArrowDropDownIcon from '@material-ui/icons/ArrowDropDown'
 import ArrowDropUpIcon from '@material-ui/icons/ArrowDropUp'
+import FacebookIcon from '@material-ui/icons/Facebook'
+import InstagramIcon from '@material-ui/icons/Instagram'
+import LinkedInIcon from '@material-ui/icons/LinkedIn'
+import TwitterIcon from '@material-ui/icons/Twitter'
+import EmailIcon from '@material-ui/icons/Email'
 import blue from '@material-ui/core/colors/blue'
+import pink from '@material-ui/core/colors/pink'
+import grey from '@material-ui/core/colors/grey'
 
 const useStyles = makeStyles({
   reccos: {
     paddingTop: 20,
+    textAlign: 'center',
     ['@media (min-width:700px)']: {
       padding: '40px 0',
       marginTop: 40,
@@ -31,7 +39,7 @@ const useStyles = makeStyles({
   reccos__main: {
     fontWeight: 400,
     fontSize: 22,
-    margin: '20px 0 40px',
+    margin: '20px 0',
     textAlign: 'center',
     ['@media (min-width:700px)']: {
       fontSize: 34,
@@ -47,6 +55,56 @@ const useStyles = makeStyles({
     ['@media (min-width:700px)']: {
       fontSize: 34,
     },
+  },
+  reccos__filter: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 40,
+    '&:hover p': {
+      color: pink['A400'],
+    },
+  },
+  reccos__filterLabel: {
+    color: grey[300],
+    fontWeight: 500,
+    transition: '.3s',
+    letterSpacing: '0.02857em',
+    textTransform: 'uppercase',
+    fontSize: '0.875rem',
+  },
+  reccos__filterLabelActive: {
+    color: pink['A400'],
+    fontWeight: 500,
+    transition: '.3s',
+    letterSpacing: '0.02857em',
+    textTransform: 'uppercase',
+    fontSize: '0.875rem',
+  },
+  reccos__filterList: {
+    display: 'flex',
+    padding: 0,
+    margin: '0 0 0 20px',
+    transform: 'translateY(-2px)',
+  },
+  reccos__filterListItem: {
+    display: 'flex',
+    alignItems: 'center',
+    marginRight: 5,
+    cursor: 'pointer',
+    color: grey[300],
+    transition: '.3s',
+    '&:hover': {
+      color: 'black',
+    },
+  },
+  reccos__filterListItemActive: {
+    display: 'flex',
+    alignItems: 'center',
+    marginRight: 5,
+    cursor: 'pointer',
+    color: 'black',
+    transition: '.3s',
   },
   reccos__cards: {
     ['@media (min-width:700px)']: {
@@ -97,6 +155,7 @@ export default function Reccos(props) {
   const [bestTimes, setBestTimes] = useState([])
   const [fullResults, setFullResults] = useState([])
   const [showResults, setShowResults] = useState(false)
+  const [filter, setFilter] = useState('')
 
   useEffect(() => {
     if (
@@ -107,62 +166,63 @@ export default function Reccos(props) {
       !props.accountData.metric
     ) {
       console.log('No Account Data, clearing')
-      setMainRecco([])
-      setBestDays([])
-      setBestTimes([])
-      setFullResults([])
-      setShowResults(false)
+      reset()
     } else {
       console.log('reccos effect hook')
       console.log(props.accountData)
+
+      const reportData = {
+        viewId: props.accountData.viewId,
+        dateRanges: [
+          {
+            startDate: '2020-04-01',
+            endDate: '2020-04-30',
+          },
+        ],
+        metrics: [
+          {
+            expression: 'ga:users',
+          },
+          {
+            expression: 'ga:sessions',
+          },
+          {
+            expression: 'ga:bounceRate',
+          },
+          {
+            expression: 'ga:transactions',
+          },
+          {
+            expression: 'ga:transactionsPerUser',
+          },
+          {
+            expression: 'ga:goalCompletionsAll',
+          },
+          {
+            expression: 'ga:goalConversionRateAll',
+          },
+        ],
+        dimensions: [
+          {
+            name: 'ga:dayOfWeek',
+          },
+          {
+            name: 'ga:hour',
+          },
+        ],
+      }
+
+      if (filter) {
+        reportData['filtersExpression'] = filter
+      }
+
       gapi.client
         .request({
           path: '/v4/reports:batchGet',
           root: 'https://analyticsreporting.googleapis.com/',
           method: 'POST',
           body: {
-            reportRequests: [
-              {
-                viewId: props.accountData.viewId,
-                dateRanges: [
-                  {
-                    startDate: '2020-04-01',
-                    endDate: '2020-04-30',
-                  },
-                ],
-                metrics: [
-                  {
-                    expression: 'ga:users',
-                  },
-                  {
-                    expression: 'ga:sessions',
-                  },
-                  {
-                    expression: 'ga:bounceRate',
-                  },
-                  {
-                    expression: 'ga:transactions',
-                  },
-                  {
-                    expression: 'ga:transactionsPerUser',
-                  },
-                  {
-                    expression: 'ga:goalCompletionsAll',
-                  },
-                  {
-                    expression: 'ga:goalConversionRateAll',
-                  },
-                ],
-                dimensions: [
-                  {
-                    name: 'ga:dayOfWeek',
-                  },
-                  {
-                    name: 'ga:hour',
-                  },
-                ],
-              },
-            ],
+            reportRequests: [reportData],
           },
         })
         .then(formatResults)
@@ -170,10 +230,16 @@ export default function Reccos(props) {
           console.log(err)
         })
     }
-  }, [props.accountData])
+  }, [props.accountData, filter])
 
   function formatResults(response) {
     let rows = response.result.reports[0].data.rows
+
+    if (!rows) {
+      alert("We couldn't find any results 😞")
+      setFilter(false)
+      return
+    }
 
     // sort data by goal completions
     const sortBy = props.accountData.metric === 'conversionRate' ? 6 : 5
@@ -287,6 +353,31 @@ export default function Reccos(props) {
     )
   }
 
+  function filterClasses(filterType) {
+    let cls = classes.reccos__filterListItem
+    if (filter === filterType) {
+      cls += ` ${classes.reccos__filterListItemActive}`
+    }
+
+    return cls
+  }
+
+  function updateFilter(filterType) {
+    if (filter === filterType) {
+      setFilter(false)
+    } else {
+      setFilter(filterType)
+    }
+  }
+
+  function reset() {
+    setMainRecco([])
+    setBestDays([])
+    setBestTimes([])
+    setFullResults([])
+    setShowResults(false)
+  }
+
   return (
     <Box style={{ display: props.accountData ? 'block' : 'none' }}>
       <Box
@@ -307,6 +398,43 @@ export default function Reccos(props) {
           </Typography>
           ⭐️
         </Typography>
+        <Box className={classes.reccos__filter}>
+          <Typography
+            className={
+              filter
+                ? classes.reccos__filterLabelActive
+                : classes.reccos__filterLabel
+            }>
+            Filter results
+          </Typography>
+          <ul className={classes.reccos__filterList}>
+            <li
+              className={filterClasses('ga:socialNetwork==Facebook')}
+              onClick={() => updateFilter('ga:socialNetwork==Facebook')}>
+              <FacebookIcon />
+            </li>
+            <li
+              className={filterClasses('ga:socialNetwork==Instagram')}
+              onClick={() => updateFilter('ga:socialNetwork==Instagram')}>
+              <InstagramIcon />
+            </li>
+            <li
+              className={filterClasses('ga:socialNetwork==Twitter')}
+              onClick={() => updateFilter('ga:socialNetwork==Twitter')}>
+              <TwitterIcon />
+            </li>
+            <li
+              className={filterClasses('ga:socialNetwork==LinkedIn')}
+              onClick={() => updateFilter('ga:socialNetwork==LinkedIn')}>
+              <LinkedInIcon />
+            </li>
+            <li
+              className={filterClasses('ga:channelGrouping==Email')}
+              onClick={() => updateFilter('ga:channelGrouping==Email')}>
+              <EmailIcon />
+            </li>
+          </ul>
+        </Box>
         <Box className={classes.reccos__cards}>
           <Card className={classes.reccos__card}>
             <CardContent>
