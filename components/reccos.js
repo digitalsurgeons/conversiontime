@@ -414,8 +414,8 @@ export default function Reccos(props) {
               <FacebookIcon />
             </li>
             <li
-              className={filterClasses('ga:socialNetwork==Instagram')}
-              onClick={() => updateFilter('ga:socialNetwork==Instagram')}>
+              className={filterClasses('ga:socialNetwork=~^Instagram')}
+              onClick={() => updateFilter('ga:socialNetwork=~^Instagram')}>
               <InstagramIcon />
             </li>
             <li
