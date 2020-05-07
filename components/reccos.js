@@ -75,11 +75,6 @@ const useStyles = makeStyles({
   },
   reccos__filterLabelActive: {
     color: pink['A400'],
-    fontWeight: 500,
-    transition: '.3s',
-    letterSpacing: '0.02857em',
-    textTransform: 'uppercase',
-    fontSize: '0.875rem',
   },
   reccos__filterList: {
     display: 'flex',
@@ -99,12 +94,7 @@ const useStyles = makeStyles({
     },
   },
   reccos__filterListItemActive: {
-    display: 'flex',
-    alignItems: 'center',
-    marginRight: 5,
-    cursor: 'pointer',
     color: 'black',
-    transition: '.3s',
   },
   reccos__cards: {
     ['@media (min-width:700px)']: {
@@ -400,11 +390,14 @@ export default function Reccos(props) {
         </Typography>
         <Box className={classes.reccos__filter}>
           <Typography
-            className={
-              filter
-                ? classes.reccos__filterLabelActive
-                : classes.reccos__filterLabel
-            }>
+            className={(() => {
+              let cls = classes.reccos__filterLabel
+              if (filter) {
+                cls += ` ${classes.reccos__filterLabelActive}`
+              }
+
+              return cls
+            })()}>
             Filter results
           </Typography>
           <ul className={classes.reccos__filterList}>
